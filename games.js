@@ -3,6 +3,8 @@ const choices = Array.from(document.getElementsByClassName("choice-text"));
 const progressText = document.getElementById("progressText");
 const scoreText = document.getElementById("score");
 const progressBarFull = document.getElementById("progressBarFull");
+const loader = document.getElementById("loader");
+const games = document.getElementById("games");
 
 
 let currentQuestion = {};
@@ -13,13 +15,28 @@ let availableQuestions = [];
 
 let questions = [];
 
-fetch("questions.json")
+fetch("https://opentdb.com/api.php?amount=10&category=9&difficulty=easy&type=multiple")
 .then( res => {
   return res.json();
 })
 .then(loadedQuestions => {
-  console.log(loadedQuestions);
-  questions = loadedQuestions;
+  console.log(loadedQuestions.results);
+  questions = loadedQuestions.results.map( loadedQuestion => {
+    const formattedQuestion = {
+      question : loadedQuestion.question
+    };
+
+    const answerChoices = [...loadedQuestion.incorrect_answers];
+    formattedQuestion.answer = Math.floor(Math.random() * 3) + 1;
+    answerChoices.splice(formattedQuestion - 1, 0 , loadedQuestion.correct_answer);
+    
+    answerChoices.forEach((choice, index) => {
+      formattedQuestion["choice" + (index+1)] = choice;
+    });
+
+    return formattedQuestion;
+  });
+  //questions = loadedQuestions;
   startGame();
 })
 .catch(err => {
@@ -37,6 +54,8 @@ startGame = () => {
     availableQuestions = [...questions]; /* spread out wach of the items of questions array and put them into the new array */
     console.log(availableQuestions);
     getNewQuestion();
+    games.classList.remove("hidden");
+    loader.classList.add("hidden");
 };
 
 getNewQuestion = () => {
